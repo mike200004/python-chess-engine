@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "python-chess-engine"
+version = "0.1.0"
+description = "A small chess engine in pure Python: alpha-beta search, UCI support and a pygame board"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Michael" }]
+requires-python = ">=3.10"
+
+[project.optional-dependencies]
+gui = ["pygame-ce>=2.4"]
+dev = ["pytest>=7"]
+
+[project.scripts]
+chess-engine = "chess_engine.__main__:main"
+
+[tool.setuptools]
+packages = ["chess_engine"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
