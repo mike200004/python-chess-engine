@@ -118,7 +118,10 @@ class UciEngine:
         i = 0
         while i < len(args):
             if args[i] in numeric and i + 1 < len(args):
-                params[args[i]] = int(args[i + 1])
+                try:
+                    params[args[i]] = int(args[i + 1])
+                except ValueError:
+                    self.send(f"info string ignoring bad value for {args[i]}: {args[i + 1]}")
                 i += 2
             else:
                 i += 1  # 'infinite', 'ponder' and unknown tokens are ignored

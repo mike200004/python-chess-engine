@@ -91,3 +91,10 @@ def test_go_movetime_zero_moves_immediately():
     engine.handle("go movetime 0")
     _wait_for(out, "bestmove", timeout=5.0)
     engine.handle("quit")
+
+
+def test_go_ignores_malformed_numbers():
+    # a bad value used to raise out of the command loop and kill the engine
+    out = run_uci(["position startpos", "go depth 2 movetime soon", "isready", "quit"])
+    assert any(line.startswith("bestmove") for line in out)
+    assert "readyok" in out
