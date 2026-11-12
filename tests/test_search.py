@@ -77,3 +77,11 @@ def test_zero_time_limit_still_limits_search():
     move, info = Searcher().search(Board(), max_depth=5, time_limit=0)
     assert move is not None
     assert info.depth == 1
+
+
+def test_quiescence_sees_mate_by_capture():
+    # Rxc7 wins the queen, but then ...Rxe1 is a capture that mates on the
+    # back rank. The capture search has to notice that, even at depth 1.
+    fen = "4r1k1/2q2ppp/8/8/8/8/5PPP/2R1N1K1 w - - 0 1"
+    found, _ = best(fen, depth=1)
+    assert found != "c1c7"

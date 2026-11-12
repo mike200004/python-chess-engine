@@ -147,7 +147,8 @@ python -m chess_engine bench
 - No opening book or endgame tablebases, and no null-move pruning or late
   move reductions, so it doesn't search as deep as it could.
 - Quiescence search only looks at captures and queen promotions, not
-  checks, so it can miss some forcing lines.
+  checks, so it can miss some forcing lines. (It does notice when a
+  capture is checkmate.)
 - Strength hasn't been measured properly. It beats a random-move player
   every time, but it has no Elo rating.
 

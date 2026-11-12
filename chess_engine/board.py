@@ -325,6 +325,16 @@ class Board:
             self.unmake_move()
         return legal
 
+    def has_legal_move(self) -> bool:
+        """Like `bool(self.legal_moves())`, but stops at the first legal move."""
+        for m in self.pseudo_legal_moves():
+            self.make_move(m)
+            legal = not self.is_attacked(self.king[-self.side], self.side)
+            self.unmake_move()
+            if legal:
+                return True
+        return False
+
     # ------------------------------------------------------ make / unmake
 
     def make_move(self, m: Move) -> None:

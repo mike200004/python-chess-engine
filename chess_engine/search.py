@@ -192,6 +192,10 @@ class Searcher:
         self.nodes += 1
         if self.nodes & 2047 == 0:
             self._check_stop()
+        if ply < MAX_PLY and board.in_check() and not board.has_legal_move():
+            # Standing pat assumes the side to move could just stop capturing,
+            # which is wrong if a capture has delivered checkmate.
+            return -MATE + ply
         stand_pat = evaluate(board)
         if stand_pat >= beta:
             return stand_pat

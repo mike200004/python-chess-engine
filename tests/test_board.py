@@ -118,3 +118,14 @@ def test_rejects_bad_fen():
         Board("not a fen")
     with pytest.raises(ValueError):
         Board("8/8/8/8/8/8/8/8 w - - 0 1")  # no kings
+
+
+@pytest.mark.parametrize("fen", [
+    START_FEN, KIWIPETE,
+    "7k/6Q1/6K1/8/8/8/8/8 b - - 0 1",    # checkmate
+    "7k/8/6QK/8/8/8/8/8 b - - 0 1",      # stalemate
+])
+def test_has_legal_move(fen):
+    board = Board(fen)
+    assert board.has_legal_move() == bool(board.legal_moves())
+    assert board.fen() == fen
