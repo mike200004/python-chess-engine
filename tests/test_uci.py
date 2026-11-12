@@ -82,3 +82,12 @@ def test_go_infinite_holds_bestmove_until_stop():
     assert "bestmove" not in out.getvalue()
     engine.handle("stop")
     assert "bestmove a1a8" in out.getvalue()
+
+
+def test_go_movetime_zero_moves_immediately():
+    out = io.StringIO()
+    engine = UciEngine(out)
+    engine.handle("position startpos")
+    engine.handle("go movetime 0")
+    _wait_for(out, "bestmove", timeout=5.0)
+    engine.handle("quit")

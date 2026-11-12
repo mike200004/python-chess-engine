@@ -76,7 +76,7 @@ class Searcher:
         iteration). The board is left unchanged."""
         board = board.copy()
         start = time.monotonic()
-        self._deadline = start + time_limit if time_limit else None
+        self._deadline = start + time_limit if time_limit is not None else None
         self._stop_event = stop_event
         self.nodes = 0
         self.killers = [[None, None] for _ in range(MAX_PLY + 1)]
@@ -99,7 +99,8 @@ class Searcher:
                 on_info(info)
             if abs(score) >= MATE - MAX_PLY:
                 break  # found a forced mate, deeper search won't change that
-            if self._deadline and time.monotonic() - start > 0.5 * (self._deadline - start):
+            if (self._deadline is not None
+                    and time.monotonic() - start > 0.5 * (self._deadline - start)):
                 break  # the next iteration would almost certainly not finish
         return best, info
 

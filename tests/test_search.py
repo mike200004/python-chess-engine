@@ -70,3 +70,10 @@ def test_search_leaves_board_unchanged():
     board = Board()
     Searcher().search(board, max_depth=3)
     assert board.fen() == START_FEN
+
+
+def test_zero_time_limit_still_limits_search():
+    # time_limit=0 means "move now", not "no limit"
+    move, info = Searcher().search(Board(), max_depth=5, time_limit=0)
+    assert move is not None
+    assert info.depth == 1
