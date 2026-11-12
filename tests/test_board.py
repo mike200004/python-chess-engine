@@ -129,3 +129,17 @@ def test_has_legal_move(fen):
     board = Board(fen)
     assert board.has_legal_move() == bool(board.legal_moves())
     assert board.fen() == fen
+
+
+def test_null_move_round_trip():
+    # passing the turn flips the side, clears en passant, keeps the hash
+    # consistent, and is fully undone
+    fen = "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2"
+    board = Board(fen)
+    board.make_null_move()
+    assert board.fen().split()[1:4] == ["b", "KQkq", "-"]
+    assert board.hash == board.compute_hash()
+    assert not board.is_repetition()
+    board.unmake_null_move()
+    assert board.fen() == fen
+    assert board.hash == board.compute_hash()

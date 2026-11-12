@@ -408,6 +408,30 @@ class Board:
         if side == BLACK:
             self.fullmove -= 1
 
+    def make_null_move(self) -> None:
+        """Pass the turn without moving (used by null-move pruning). Undo it
+        with unmake_null_move, not unmake_move."""
+        self.history.append((None, EMPTY, EMPTY, self.castling, self.ep, self.halfmove, self.hash))
+        h = self.hash ^ Z_SIDE
+        if self.ep:
+            h ^= Z_EP[file_of(self.ep)]
+        self.ep = 0
+        self.halfmove = 0  # a repetition can't reach back across a null move
+        self.side = -self.side
+        self.hash = h
+        self.hash_history.append(h)
+
+    def unmake_null_move(self) -> None:
+        _, _, _, _, ep, halfmove, h = self.history.pop()
+        self.hash_history.pop()
+        self.side = -self.side
+        self.ep, self.halfmove, self.hash = ep, halfmove, h
+
+    def has_non_pawn_material(self, side: int) -> bool:
+        """Does `side` have anything besides its king and pawns?"""
+        s = self.squares
+        return any(KNIGHT <= s[sq] * side <= QUEEN for sq in ON_BOARD)
+
     # ------------------------------------------------------- game status
 
     def is_capture(self, m: Move) -> bool:

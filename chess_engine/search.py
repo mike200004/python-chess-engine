@@ -7,6 +7,7 @@ Extras on top of plain alpha-beta:
     then captures by MVV-LVA (most valuable victim, least valuable attacker),
     then killer moves
   * transposition table keyed by Zobrist hash
+  * null-move pruning
   * check extension
   * time control, checked every 2048 nodes
 """
@@ -26,6 +27,9 @@ INF = 1_000_000
 MAX_PLY = 64
 
 EXACT, LOWER, UPPER = 0, 1, 2
+
+NULL_MOVE_MIN_DEPTH = 3
+NULL_MOVE_REDUCTION = 2
 
 
 class _Stop(Exception):
@@ -126,7 +130,8 @@ class Searcher:
             alpha = max(alpha, score)
         return best_move, best_score
 
-    def _negamax(self, board: Board, depth: int, alpha: int, beta: int, ply: int) -> int:
+    def _negamax(self, board: Board, depth: int, alpha: int, beta: int, ply: int,
+                 allow_null: bool = True) -> int:
         self.nodes += 1
         if self.nodes & 2047 == 0:
             self._check_stop()
@@ -154,6 +159,22 @@ class Searcher:
                     beta = min(beta, e_score)
                 if alpha >= beta:
                     return e_score
+
+        # Null-move pruning: let the opponent move twice in a row. If a
+        # reduced search still fails high, a real move would almost surely
+        # do at least as well, so skip this node. Not when in check (passing
+        # would be illegal), and not with only pawns left, where zugzwang -
+        # every move making things worse - is common enough to fool it.
+        if (allow_null and not in_check and depth >= NULL_MOVE_MIN_DEPTH
+                and beta < MATE - MAX_PLY and board.has_non_pawn_material(board.side)):
+            board.make_null_move()
+            try:
+                score = -self._negamax(board, depth - 1 - NULL_MOVE_REDUCTION,
+                                       -beta, -beta + 1, ply + 1, allow_null=False)
+            finally:
+                board.unmake_null_move()
+            if score >= beta:
+                return beta
 
         moves = board.legal_moves()
         if not moves:

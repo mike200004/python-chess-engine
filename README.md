@@ -29,7 +29,7 @@ negamax/alpha-beta engine), but the engine itself is built differently:
 | Board | 8×8 list of strings like `"wN"` | 10×12 "mailbox" list of ints, so pieces can step off the edge into sentinel squares without bounds checks |
 | Legal moves | Track checks and pins directly | Generate pseudo-legal moves, make each one, discard it if it leaves the king in check (simpler to get right) |
 | Making sure moves are right | Playing the game | **Perft** tests against published node counts, plus make/unmake round-trip tests |
-| Search | Negamax with alpha-beta at a fixed depth | Adds iterative deepening with a time limit, quiescence search, move ordering (MVV-LVA, killer moves), a transposition table with Zobrist hashing, and check extensions |
+| Search | Negamax with alpha-beta at a fixed depth | Adds iterative deepening with a time limit, quiescence search, move ordering (MVV-LVA, killer moves), a transposition table with Zobrist hashing, null-move pruning, and check extensions |
 | Evaluation | Material + piece position scores | Material + the "Simplified Evaluation Function" tables, with a separate endgame king table and a bishop-pair bonus |
 | Interface | pygame | pygame **and** UCI, so it runs in Arena, Cute Chess, En Croissant, etc. |
 
@@ -111,7 +111,9 @@ move, then captures ordered by most valuable victim / least valuable
 attacker, then "killer" moves that caused cutoffs at the same depth), which is
 what makes alpha-beta prune well. A transposition table, keyed by an
 incrementally updated Zobrist hash, remembers positions it has already
-searched.
+searched. Null-move pruning skips positions where even passing the turn
+would still leave us doing well enough; it's turned off when in check and
+when only pawns are left, where zugzwang makes passing look too good.
 
 **Evaluation.** Material plus a bonus or penalty for where each piece
 stands (knights in the centre, rooks on the 7th, king tucked away in the
@@ -144,8 +146,8 @@ python -m chess_engine bench
 - Speed: roughly 80,000–140,000 positions/second on a MacBook with Python 3.14, which is slow next to
   engines in C or Rust (millions per second). That's the price of pure
   Python and readable code.
-- No opening book or endgame tablebases, and no null-move pruning or late
-  move reductions, so it doesn't search as deep as it could.
+- No opening book or endgame tablebases, and no late move reductions, so
+  it doesn't search as deep as it could.
 - Quiescence search only looks at captures and queen promotions, not
   checks, so it can miss some forcing lines. (It does notice when a
   capture is checkmate.)
