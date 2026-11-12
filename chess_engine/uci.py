@@ -123,8 +123,9 @@ class UciEngine:
             else:
                 i += 1  # 'infinite', 'ponder' and unknown tokens are ignored
         depth = params.get("depth", MAX_PLY)
-        limit = None if "infinite" in args else time_for_move(self.board, params)
-        if limit is None and "depth" not in params and "infinite" not in args:
+        infinite = "infinite" in args
+        limit = None if infinite else time_for_move(self.board, params)
+        if limit is None and "depth" not in params and not infinite:
             limit = 5.0  # bare 'go': don't think forever
 
         self._stop.clear()
@@ -134,6 +135,10 @@ class UciEngine:
             move, _ = self.searcher.search(
                 board, max_depth=depth, time_limit=limit, stop_event=self._stop,
                 on_info=lambda info: self.send(format_info(info)))
+            if infinite:
+                # The search can end on its own (forced mate, max depth), but
+                # in infinite mode UCI forbids bestmove before "stop".
+                self._stop.wait()
             self.send(f"bestmove {move.uci() if move else '0000'}")
 
         self._thread = threading.Thread(target=run, daemon=True)

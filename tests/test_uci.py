@@ -1,9 +1,12 @@
-"""Drive the engine over the UCI protocol in a real subprocess."""
+"""Drive the engine over the UCI protocol, mostly in a real subprocess."""
 
+import io
 import subprocess
 import sys
+import time
 
 from chess_engine.board import Board
+from chess_engine.uci import UciEngine
 
 
 def run_uci(commands, timeout=30):
@@ -58,3 +61,24 @@ def test_position_fen_and_mate_score():
 def test_go_infinite_then_stop():
     out = run_uci(["position startpos", "go infinite", "stop", "quit"], timeout=30)
     assert any(line.startswith("bestmove") for line in out)
+
+
+def _wait_for(out, text, timeout=10.0):
+    deadline = time.monotonic() + timeout
+    while text not in out.getvalue():
+        assert time.monotonic() < deadline, f"timed out waiting for {text!r}"
+        time.sleep(0.01)
+
+
+def test_go_infinite_holds_bestmove_until_stop():
+    # UCI: in infinite mode bestmove must not be sent before "stop", even if
+    # the search finishes early because it found a mate.
+    out = io.StringIO()
+    engine = UciEngine(out)
+    engine.handle("position fen 6k1/5ppp/8/8/8/8/8/R5K1 w - - 0 1")
+    engine.handle("go infinite")
+    _wait_for(out, "score mate 1")
+    time.sleep(0.2)
+    assert "bestmove" not in out.getvalue()
+    engine.handle("stop")
+    assert "bestmove a1a8" in out.getvalue()
