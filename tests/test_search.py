@@ -15,7 +15,7 @@ def best(fen, depth=4):
 @pytest.mark.parametrize("fen", [
     "6k1/5ppp/8/8/8/8/8/R5K1 w - - 0 1",                               # back-rank mate
     "rnbqkbnr/ppppp2p/5p2/6p1/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 3",   # fool's mate
-    "k7/8/1K6/8/8/8/8/7Q w - - 0 1",                                   # queen + king
+    "k7/8/1K6/8/8/8/7Q/8 w - - 0 1",                                    # queen + king
 ])
 def test_finds_mate_in_one(fen):
     found, info = best(fen, depth=2)

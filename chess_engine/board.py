@@ -139,6 +139,18 @@ class Board:
                 raise ValueError("each side needs exactly one king")
             self.king[colour] = kings[0]
 
+        # An en passant square has to be the empty square right behind a pawn
+        # that just moved two squares. Drop one that isn't, otherwise the
+        # move generator makes up captures of pieces that aren't there.
+        if self.ep:
+            ep_rank = 5 if self.side == WHITE else 2
+            if (rank_of(self.ep) != ep_rank or squares[self.ep] != EMPTY
+                    or squares[self.ep - 10 * self.side] != -PAWN * self.side):
+                self.ep = 0
+
+        if self.is_attacked(self.king[-self.side], self.side):
+            raise ValueError("the side not to move is in check")
+
         self.history = []  # undo records for unmake_move
         self.hash = self.compute_hash()
         self.hash_history = [self.hash]

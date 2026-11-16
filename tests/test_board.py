@@ -118,6 +118,17 @@ def test_rejects_bad_fen():
         Board("not a fen")
     with pytest.raises(ValueError):
         Board("8/8/8/8/8/8/8/8 w - - 0 1")  # no kings
+    with pytest.raises(ValueError):
+        Board("4k3/8/8/8/8/8/8/4R1K1 w - - 0 1")  # black is in check but it's white's move
+
+
+def test_ignores_impossible_en_passant_square():
+    # e3 can't be an en passant square with white to move (used to crash)
+    board = Board("4k3/8/8/8/4P3/8/3P4/4K3 w - e3 0 1")
+    assert board.ep == 0
+    assert "d2e3" not in [m.uci() for m in board.legal_moves()]
+    # right rank, but no black pawn on e5 that could have just moved
+    assert Board("4k3/8/8/8/8/8/8/4K3 w - e6 0 1").ep == 0
 
 
 @pytest.mark.parametrize("fen", [
